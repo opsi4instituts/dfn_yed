@@ -1,0 +1,161 @@
+; Copyright (c) uib gmbh (www.uib.de)
+; This sourcecode is owned by uib gmbh
+; and published under the Terms of the General Public License.
+; credits: http://www.opsi.org/credits/
+
+[Actions]
+; common values for (un)installation
+include_insert "common.opsiinc"
+
+if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
+	LogError "Not enough space on %SystemDrive%, " + $MinimumSpace$ + " on drive %SystemDrive% needed for " + $ProductId$
+	isFatalError
+	; Stop process and set installation status to failed
+else
+	if FileExists("%ScriptPath%\delsub.opsiscript")
+		comment "Start uninstall sub section"
+		Sub "%ScriptPath%\delsub.opsiscript"
+	endif
+	
+	Message "Installing " + $ProductName$ + " ..."
+
+	comment "Copy files"
+	Files_install
+	
+	comment "Patch Registry"
+	Registry_install /SysNative
+	
+	set $RegisterFileTypes$ = getProductProperty("register-file-types","no")
+	if ($RegisterFileTypes$ = "yes")
+		comment "Register file types"
+		Registry_install_filetypes /SysNative	
+	endif
+
+	set $DesktopIcon$ = getProductProperty("desktopicon","no")
+	if $DesktopIcon$ = "yes"
+		comment "Create common desktop icon"
+		Linkfolder_install_desktopicon	
+	endif
+
+	set $StartmenuEntry$ = getProductProperty("startmenuentry","no")
+	if $StartmenuEntry$ = "yes"
+		comment "Create common startmenu entry"
+		Linkfolder_install_startmenu	
+	endif
+
+	comment "include custom post install file"
+	set $CustomPostInstall$ = getProductProperty("custom-post-install","none")
+	if not ($CustomPostInstall$ = "none")
+		if FileExists("%ScriptPath%\custom\" + $CustomPostInstall$)
+			include_insert "%ScriptPath%\custom\" + $CustomPostInstall$
+		endif
+	endif
+endif
+
+[Registry_install]
+; da wir keinen Installer nehmen, müssen ein paar notwendige Keys angelegt werden, damit sie unter 'Systemeinstellungen' > 'Software und Funktionen' auftaucht
+openkey [$RegUninstallPath$\$ProductIdIntern$]
+set "DisplayName" = REG_SZ:"$ProductId$ OPSI-Version: $ProductVersion$"
+set "DisplayIcon" = REG_SZ:"$PathToIco$"
+set "InstallLocation" = REG_SZ:"$InstallDir$"
+set "UninstallDirectory" = REG_SZ:"$InstallDir$"
+;UninstallString ist der entscheidende Eintrag, damit es überhaupt angezeigt wird!
+;da es in diesem Fall keine Deinstallationsroutine gibt, rufen wir ein VBS mit einem Hinweis auf
+set "UninstallString" = REG_SZ:'wscript "$InstallDir$\uninstall.vbs"'
+set "NoRepair" = REG_DWORD:0001
+set "NoModify" = REG_DWORD:0001
+
+[Registry_install_filetypes]
+;graphml
+openkey [HKLM\SOFTWARE\Classes\.graphml]
+set "" = "yEd"
+openkey [HKLM\SOFTWARE\Classes\yEd]
+set "" = "Graph Markup Language"
+openkey [HKLM\SOFTWARE\Classes\yEd\DefaultIcon]
+set "" = "$PathToIco$"
+openkey [HKLM\SOFTWARE\Classes\yEd\shell\open\command]
+set "" = '"$PathToExe$" "%1"'
+
+;graphmlz
+openkey [HKLM\SOFTWARE\Classes\.graphmlz]
+set "" = "yEd 1"
+openkey [HKLM\SOFTWARE\Classes\yEd 1]
+set "" = "Graph Markup Language (Compressed)"
+openkey [HKLM\SOFTWARE\Classes\yEd 1\DefaultIcon]
+set "" = "$PathToIco$"
+openkey [HKLM\SOFTWARE\Classes\yEd 1\shell\open\command]
+set "" = '"$PathToExe$" "%1"'
+
+;ygf
+openkey [HKLM\SOFTWARE\Classes\.ygf]
+set "" = "yEd 2"
+openkey [HKLM\SOFTWARE\Classes\yEd 2]
+set "" = "yWorks Binary Graph Format"
+openkey [HKLM\SOFTWARE\Classes\yEd 2\DefaultIcon]
+set "" = "$PathToIco$"
+openkey [HKLM\SOFTWARE\Classes\yEd 2\shell\open\command]
+set "" = '"$PathToExe$" "%1"'
+
+;gml
+openkey [HKLM\SOFTWARE\Classes\.gml]
+set "" = "yEd 3"
+openkey [HKLM\SOFTWARE\Classes\yEd 3]
+set "" = "Graph Modeling Language"
+openkey [HKLM\SOFTWARE\Classes\yEd 3\DefaultIcon]
+set "" = "$PathToIco$"
+openkey [HKLM\SOFTWARE\Classes\yEd 3\shell\open\command]
+set "" = '"$PathToExe$" "%1"'
+
+;xgml
+openkey [HKLM\SOFTWARE\Classes\.xgml]
+set "" = "yEd 4"
+openkey [HKLM\SOFTWARE\Classes\yEd 4]
+set "" = "Graph Modeling Language (XML)"
+openkey [HKLM\SOFTWARE\Classes\yEd 4\DefaultIcon]
+set "" = "$PathToIco$"
+openkey [HKLM\SOFTWARE\Classes\yEd 4\shell\open\command]
+set "" = '"$PathToExe$" "%1"'
+
+;tgf
+openkey [HKLM\SOFTWARE\Classes\.tgf]
+set "" = "yEd 5"
+openkey [HKLM\SOFTWARE\Classes\yEd 5]
+set "" = "Trivial Graph Format"
+openkey [HKLM\SOFTWARE\Classes\yEd 5\DefaultIcon]
+set "" = "$PathToIco$"
+openkey [HKLM\SOFTWARE\Classes\yEd 5\shell\open\command]
+set "" = '"$PathToExe$" "%1"'
+
+;ged
+openkey [HKLM\SOFTWARE\Classes\.ged]
+set "" = "yEd 6"
+openkey [HKLM\SOFTWARE\Classes\yEd 6]
+set "" = "GEDCOM Data"
+openkey [HKLM\SOFTWARE\Classes\yEd 6\DefaultIcon]
+set "" = "$PathToIco$"
+openkey [HKLM\SOFTWARE\Classes\yEd 6\shell\open\command]
+set "" = '"$PathToExe$" "%1"'
+
+[Linkfolder_install_desktopicon]
+set_basefolder common_desktopdirectory
+set_subfolder ""
+
+set_link
+ 	name: $ProductName$
+ 	target: $PathToExe$
+	icon_file: $PathToIco$
+end_link
+
+[Linkfolder_install_startmenu]
+set_basefolder common_programs
+set_subfolder $ProductName$
+
+set_link
+ 	name: $ProductName$
+ 	target: $PathToExe$
+ 	icon_file: $PathToIco$
+end_link
+
+[Files_install]
+copy -s "%ScriptPath%\files\*.*" "$InstallDir$"
+

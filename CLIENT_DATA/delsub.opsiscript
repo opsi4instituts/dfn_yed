@@ -1,0 +1,74 @@
+; Copyright (c) uib gmbh (www.uib.de)
+; This sourcecode is owned by uib gmbh
+; and published under the Terms of the General Public License.
+; credits: http://www.opsi.org/credits/
+
+if not (GetRegistryStringValueSysNative("[" + $RegUninstallPath$ + "\" + $ProductIdIntern$ + "] DisplayName") = "")
+        comment "Found installed " + $ProductId$ + " in registry"
+
+        Set $UninstallDir$ = GetRegistryStringValueSysNative("[" + $RegUninstallPath$ + "\" + $ProductIdIntern$ + "] InstallLocation")
+
+	comment "Delete files"
+	Files_uninstall
+	
+	comment "Cleanup registry"
+	Registry_uninstall /Sysnative
+	
+	set $RegisterFileTypes$ = getProductProperty("register-file-types","no")
+	if ($RegisterFileTypes$ = "yes")
+		comment "Register file types"
+		Registry_uninstall_filetypes /SysNative	
+	endif
+
+	set $DesktopIcon$ = getProductProperty("desktopicon","no")
+	if $DesktopIcon$ = "yes"
+		comment "Create common desktop icon"
+		Linkfolder_uninstall_desktopicon	
+	endif
+
+	set $StartmenuEntry$ = getProductProperty("startmenuentry","no")
+	if $StartmenuEntry$ = "yes"
+		comment "Create common startmenu entry"
+		Linkfolder_uninstall_startmenu	
+	endif	
+endif
+
+comment "include custom post deinstall file"
+set $CustomPostDeinstall$ = getProductProperty("custom-post-deinstall","none")
+if not ($CustomPostDeinstall$ = "none")
+	if FileExists("%ScriptPath%\custom\" + $CustomPostDeinstall$)
+		include_insert "%ScriptPath%\custom\" + $CustomPostDeinstall$
+	endif
+endif
+
+[Files_uninstall]
+delete -sf "$UninstallDir$"
+
+[Registry_uninstall]
+deletekey [$RegUninstallPath$\$ProductIdIntern$]
+
+[Registry_uninstall_filetypes]
+deletekey [HKLM\SOFTWARE\Classes\.graphml]
+deletekey [HKLM\SOFTWARE\Classes\yEd]
+deletekey [HKLM\SOFTWARE\Classes\.graphmlz]
+deletekey [HKLM\SOFTWARE\Classes\yEd 1]
+deletekey [HKLM\SOFTWARE\Classes\.ygf]
+deletekey [HKLM\SOFTWARE\Classes\yEd 2]
+deletekey [HKLM\SOFTWARE\Classes\.gml]
+deletekey [HKLM\SOFTWARE\Classes\yEd 3]
+deletekey [HKLM\SOFTWARE\Classes\.xgml]
+deletekey [HKLM\SOFTWARE\Classes\yEd 4]
+deletekey [HKLM\SOFTWARE\Classes\.tgf]
+deletekey [HKLM\SOFTWARE\Classes\yEd 5]
+deletekey [HKLM\SOFTWARE\Classes\.ged]
+deletekey [HKLM\SOFTWARE\Classes\yEd 6]
+
+[Linkfolder_uninstall_desktopicon]
+set_basefolder common_desktopdirectory
+set_subfolder ""
+delete_element $ProductName$
+
+[Linkfolder_uninstall_startmenu]
+set_basefolder common_programs
+delete_subfolder $ProductName$
+

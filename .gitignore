@@ -1,0 +1,8 @@
+*.opsi
+*.bak
+*.exe
+*.vbs
+*.md5
+*.zsync
+custom
+orig

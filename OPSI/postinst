@@ -1,0 +1,56 @@
+#! /bin/sh
+#
+# postinst script for softprod
+# This script executes after unpacking files from that archive and registering the product at the server.
+#
+# The following environment variables can be used to obtain information about the current installation:
+#   PRODUCT_ID: id of the current product
+#   CLIENT_DATA_DIR: directory which contains the installed client data
+#
+
+TMP_DIR=${CLIENT_DATA_DIR}/../${PRODUCT_ID}.tmp
+
+if [ -d $TMP_DIR ]; then
+	echo 'Restoring previous directories...'
+	
+	echo 'Restoring previous custom dir...'
+	if [ -d $TMP_DIR/custom ]; then
+		test -e $CLIENT_DATA_DIR/custom && rm -rf $CLIENT_DATA_DIR/custom
+		echo "   moving $TMP_DIR/custom to $CLIENT_DATA_DIR/"
+		mv $TMP_DIR/custom $CLIENT_DATA_DIR/ || exit 1	
+	fi
+fi
+
+echo "Removing temporary files..."
+rm -rf $TMP_DIR
+
+### Download ###
+
+URL="http://www.yworks.com/products/yed/demo/"
+
+# Check ob wget vorhanden
+command -v wget >/dev/null 2>&1 || { echo >&2 "wget required, please install. Aborting."; exit 1; }
+WGET_BIN=`which wget`
+
+# Check ob unzip vorhanden
+command -v unzip >/dev/null 2>&1 || { echo >&2 "unzip required, please install. Aborting."; exit 1; }
+UNZIP_BIN=`which unzip`
+
+YED_VERSION=`$WGET_BIN $URL/yEd-CurrentVersion.txt -O - -q`
+YED_ZIPFILE="yEd-$YED_VERSION.zip"
+YED_EXTRACTED_DIR="yed-$YED_VERSION"
+
+$WGET_BIN $URL/$YED_ZIPFILE -O $CLIENT_DATA_DIR/$YED_ZIPFILE -P $CLIENT_DATA_DIR -q
+
+unzip -o -q $CLIENT_DATA_DIR/$YED_ZIPFILE -d $CLIENT_DATA_DIR
+
+# bestehende Dateien werden überschrieben!
+cp -r $CLIENT_DATA_DIR/$YED_EXTRACTED_DIR/* $CLIENT_DATA_DIR/files
+
+# aufräumen
+rm $CLIENT_DATA_DIR/$YED_ZIPFILE
+rm -r $CLIENT_DATA_DIR/$YED_EXTRACTED_DIR
+
+# schreibe versionnummer in textdatei -> Check in OPSI-Script
+echo $YED_VERSION > $CLIENT_DATA_DIR/files/current-version.txt
+

@@ -1,0 +1,64 @@
+requiredWinstVersion >= "4.11.4.6"
+
+DefVar $LogDir$
+DefVar $ProductId$
+DefVar $ProductIdIntern$
+DefVar $ProductName$
+DefVar $InstallDir$
+DefVar $UninstallDir$
+DefVar $RegUninstallPath$
+DefVar $MSVersion$
+DefVar $INST_architecture$
+DefVar $INST_SystemType$
+DefVar $RegisterFileTypes$
+DefVar $DesktopIcon$
+DefVar $StartmenuEntry$
+DefVar $ProductVersion$
+DefVar $SwVersion$
+DefVar $MinimumSpace$
+DefVar $PathToExe$
+DefVar $PathToIco$
+DefVar $CustomPostInstall$
+DefVar $CustomPostDeinstall$
+DefVar $DownloadVersion$
+DefVar $DownloadVersionFile$
+DefStringList $Rows$
+
+Set $INST_SystemType$ = GetSystemType
+set $INST_architecture$ = GetProductProperty("install_architecture","system specific")
+Set $MSVersion$	 = GetMsVersionInfo
+Set $LogDir$ = "%opsiLogDir%"
+Set $ProductVersion$    = "%installingProdVersion%"
+
+; ----------------------------------------------------------------
+Set $MinimumSpace$    = "32 MB"
+Set $ProductId$       = "dfn_yed"
+Set $ProductIdIntern$ = "yed"
+Set $ProductName$ = "yEd Graph Editor"
+Set $InstallDir$      = "%ProgramFilesSysnativeDir%\" + $ProductIdIntern$
+Set $RegUninstallPath$ = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+Set $PathToExe$ = $InstallDir$ + "\yed.exe"
+Set $PathToIco$ = $InstallDir$ + "\icons\yicon.ico"
+Set $DownloadVersionFile$ = "%ScriptPath%\files\current-version.txt"
+; ----------------------------------------------------------------
+
+if not ($MSVersion$ = "6.1")
+	Logwarning "OPSI package only tested with windows 7! Please report successful usage on other windows versions to the maintainer."
+endif
+	
+if not (($INST_SystemType$ = "64 Bit System") and (($INST_architecture$ = "system specific") or ($INST_architecture$ = "both") or ($INST_architecture$ = "64 only")))
+	Logwarning "OPSI package only tested with windows 64 bit version! Please report successful usage on windows 32 bit version to the maintainer."
+endif
+
+Set $SwVersion$ = takestring(0, splitString ($ProductVersion$, '-'))
+if FileExists ($DownloadVersionFile$)
+	Set $Rows$ = loadTextFile($DownloadVersionFile$)
+	Set $DownloadVersion$ = takeString(0, $Rows$)
+	if not ($DownloadVersion$ = $SwVersion$)
+		logError "Version between OPSI package and downloaded binaries does not match!"
+		isFatalError
+	endif
+else
+	logError "File $DownloadVersionFile$ not found! There went something wrong on downloading and extracting the binary files. 'wget' and 'unzip' tools installed?"
+	isFatalError
+endif
