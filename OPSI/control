@@ -23,7 +23,7 @@ userLoginScript:
 
 [ProductDependency]
 action: setup
-requiredProduct: java
+requiredProduct: dfn_jre
 requiredStatus: installed
 requirementType: before
 
