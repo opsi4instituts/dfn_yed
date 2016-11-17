@@ -2,11 +2,13 @@ requiredWinstVersion >= "4.11.4.6"
 
 DefVar $LogDir$
 DefVar $ProductId$
-DefVar $ProductIdIntern$
 DefVar $ProductName$
 DefVar $InstallDir$
 DefVar $UninstallDir$
-DefVar $RegUninstallPath$
+DefVar $RegPathUninstall$
+DefVar $RegId$
+DefVar $SearchPattern$
+DefStringList $ResultList$
 DefVar $MSVersion$
 DefVar $INST_architecture$
 DefVar $INST_SystemType$
@@ -32,21 +34,25 @@ Set $ProductVersion$    = "%installingProdVersion%"
 
 ; ----------------------------------------------------------------
 Set $MinimumSpace$    = "32 MB"
-Set $ProductId$       = "dfn_yed"
-Set $ProductIdIntern$ = "yed"
+Set $ProductId$       = "yed"
 Set $ProductName$ = "yEd Graph Editor"
-Set $InstallDir$      = "%ProgramFilesSysnativeDir%\" + $ProductIdIntern$
-Set $RegUninstallPath$ = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+Set $InstallDir$      = "%ProgramFilesSysnativeDir%\" + $ProductId$
+Set $RegPathUninstall$ = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 Set $PathToExe$ = $InstallDir$ + "\yed.exe"
 Set $PathToIco$ = $InstallDir$ + "\icons\yicon.ico"
 Set $DownloadVersionFile$ = "%ScriptPath%\files\current-version.txt"
 ; ----------------------------------------------------------------
 
-if not ($MSVersion$ = "6.1")
-	Logwarning "OPSI package only tested with windows 7! Please report successful usage on other windows versions to the maintainer."
+SetLogLevel = 6
+
+include_append "section_sub_search_registry32_uninstall_keys.opsiinc"
+include_append "section_sub_search_registry64_uninstall_keys.opsiinc"
+
+if not ($MSVersion$ = "6.1" OR $MSVersion$ = "10.0")
+	Logwarning "Only tested with windows 7 and 10! Please report to the maintainer successful installation on other windows versions."		
 endif
 	
-if not (($INST_SystemType$ = "64 Bit System") and (($INST_architecture$ = "system specific") or ($INST_architecture$ = "both") or ($INST_architecture$ = "64 only")))
+if not (($INST_SystemType$ = "64 Bit System") and (($INST_architecture$ = "system specific") or ($INST_architecture$ = "64 only")))
 	Logwarning "OPSI package only tested with windows 64 bit version! Please report successful usage on windows 32 bit version to the maintainer."
 endif
 
@@ -55,10 +61,10 @@ if FileExists ($DownloadVersionFile$)
 	Set $Rows$ = loadTextFile($DownloadVersionFile$)
 	Set $DownloadVersion$ = takeString(0, $Rows$)
 	if not ($DownloadVersion$ = $SwVersion$)
-		logError "Version between OPSI package and downloaded binaries does not match!"
+		logError "Version of OPSI package and downloaded binaries does not match! Compare with '/var/lib/opsi/depot/dfn_yed/files/current-version.txt'."
 		isFatalError
 	endif
 else
-	logError "File $DownloadVersionFile$ not found! There went something wrong on downloading and extracting the binary files. 'wget' and 'unzip' tools installed?"
+	logError "File $DownloadVersionFile$ not found! There went something wrong on downloading and extracting the binary files. 'wget' and 'unzip' tools installed on OPSI server?"
 	isFatalError
 endif

@@ -12,12 +12,15 @@ if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
 	isFatalError
 	; Stop process and set installation status to failed
 else
+	comment "Show product picture"
+	ShowBitmap "%ScriptPath%\o4i.png" $ProductName$
+	
 	if FileExists("%ScriptPath%\delsub.opsiscript")
 		comment "Start uninstall sub section"
 		Sub "%ScriptPath%\delsub.opsiscript"
 	endif
 	
-	Message "Installing " + $ProductName$ + " ..."
+	Message "Installing %installingProdName% (%installingProdVersion%)"
 
 	comment "Copy files"
 	Files_install
@@ -54,7 +57,7 @@ endif
 
 [Registry_install]
 ; da wir keinen Installer nehmen, müssen ein paar notwendige Keys angelegt werden, damit sie unter 'Systemeinstellungen' > 'Software und Funktionen' auftaucht
-openkey [$RegUninstallPath$\$ProductIdIntern$]
+openkey [$RegPathUninstall$\$ProductId$]
 set "DisplayName" = REG_SZ:"$ProductId$ OPSI-Version: $ProductVersion$"
 set "DisplayIcon" = REG_SZ:"$PathToIco$"
 set "InstallLocation" = REG_SZ:"$InstallDir$"

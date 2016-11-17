@@ -3,35 +3,66 @@
 ; and published under the Terms of the General Public License.
 ; credits: http://www.opsi.org/credits/
 
-if not (GetRegistryStringValueSysNative("[" + $RegUninstallPath$ + "\" + $ProductIdIntern$ + "] DisplayName") = "")
-        comment "Found installed " + $ProductId$ + " in registry"
+Set $SearchPattern$ = $ProductId$
+; Parameter: $SearchPattern$ Suchbegriff in Registry
+Sub_search_registry32_uninstall_keys
+; Rückgabewert: $ResultList$ gefundene Einträge
 
-        Set $UninstallDir$ = GetRegistryStringValueSysNative("[" + $RegUninstallPath$ + "\" + $ProductIdIntern$ + "] InstallLocation")
-
-	comment "Delete files"
-	Files_uninstall
-	
-	comment "Cleanup registry"
-	Registry_uninstall /Sysnative
-	
-	set $RegisterFileTypes$ = getProductProperty("register-file-types","no")
-	if ($RegisterFileTypes$ = "yes")
-		comment "Register file types"
-		Registry_uninstall_filetypes /SysNative	
+if ( count ($ResultList$) = "0" )
+	comment "No installations of " + $SearchPattern$ + " found in 32-bit registry. Nothing to do ;-)"
+else
+	Set $RegId$ = takeString(0, $ResultList$)	
+	; 'OPSI' im DisplayName der Registry ist der entscheidende Punkt, ob eine vorherige Installatin via OPSI und 'files_install' gemacht wurde
+	if (contains(GetRegistryStringValue32("[" + $RegPathUninstall$ + "\" + $RegId$ + "] DisplayName"), "OPSI"))
+		Set $UninstallDir$ = GetRegistryStringValue32("[" + $RegPathUninstall$ + "\" + $RegId$ + "] InstallLocation")
+		Sub_uninstall
+	else
+		logError "Es wurde eine Version von " + $ProductId$ +" gefunden, die manuell mittels Installer (install4j) installiert wurde. Diese kann nicht silent deinstalliert werden, Bitte zunächst manuell deinstallieren!"
 	endif
-
-	set $DesktopIcon$ = getProductProperty("desktopicon","no")
-	if $DesktopIcon$ = "yes"
-		comment "Create common desktop icon"
-		Linkfolder_uninstall_desktopicon	
-	endif
-
-	set $StartmenuEntry$ = getProductProperty("startmenuentry","no")
-	if $StartmenuEntry$ = "yes"
-		comment "Create common startmenu entry"
-		Linkfolder_uninstall_startmenu	
-	endif	
 endif
+
+; Parameter: $SearchPattern$ Suchbegriff in Registry
+Sub_search_registry64_uninstall_keys
+; Rückgabewert: $ResultList$ gefundene Einträge
+
+if ( count ($ResultList$) = "0" )
+	comment "No installations of " + $SearchPattern$ + " found in 64-bit registry. Nothing to do ;-)"
+else
+	Set $RegId$ = takeString(0, $ResultList$)	
+	; 'OPSI' im DisplayName der Registry ist der entscheidende Punkt, ob eine vorherige Installatin via OPSI und 'files_install' gemacht wurde
+	if (contains(GetRegistryStringValue64("[" + $RegPathUninstall$ + "\" + $RegId$ + "] DisplayName"), "OPSI"))
+		Set $UninstallDir$ = GetRegistryStringValue64("[" + $RegPathUninstall$ + "\" + $RegId$ + "] InstallLocation")
+		Sub_uninstall
+	else
+		logError "Es wurde eine Version von " + $ProductId$ +" gefunden, die manuell mittels Installer (install4j) installiert wurde. Diese kann nicht silent deinstalliert werden. Bitte zunächst manuell deinstallieren!"
+	endif
+endif
+        
+[Sub_uninstall]
+
+comment "Delete files"
+Files_uninstall
+	
+comment "Cleanup registry"
+Registry_uninstall /Sysnative
+
+set $RegisterFileTypes$ = getProductProperty("register-file-types","no")
+if ($RegisterFileTypes$ = "yes")
+	comment "Register file types"
+	Registry_uninstall_filetypes /SysNative	
+endif
+
+set $DesktopIcon$ = getProductProperty("desktopicon","no")
+if $DesktopIcon$ = "yes"
+	comment "Create common desktop icon"
+	Linkfolder_uninstall_desktopicon	
+endif
+
+set $StartmenuEntry$ = getProductProperty("startmenuentry","no")
+if $StartmenuEntry$ = "yes"
+	comment "Create common startmenu entry"
+	Linkfolder_uninstall_startmenu	
+endif	
 
 comment "include custom post deinstall file"
 set $CustomPostDeinstall$ = getProductProperty("custom-post-deinstall","none")
@@ -45,7 +76,7 @@ endif
 delete -sf "$UninstallDir$"
 
 [Registry_uninstall]
-deletekey [$RegUninstallPath$\$ProductIdIntern$]
+deletekey [$RegPathUninstall$\$ProductId$]
 
 [Registry_uninstall_filetypes]
 deletekey [HKLM\SOFTWARE\Classes\.graphml]
