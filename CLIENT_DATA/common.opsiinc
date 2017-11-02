@@ -13,7 +13,7 @@ DefVar $MSVersion$
 DefVar $INST_architecture$
 DefVar $INST_SystemType$
 DefVar $RegisterFileTypes$
-DefVar $DesktopIcon$
+DefVar $DesktopLink$
 DefVar $StartmenuEntry$
 DefVar $ProductVersion$
 DefVar $SwVersion$
@@ -28,6 +28,7 @@ DefStringList $Rows$
 
 Set $INST_SystemType$ = GetSystemType
 set $INST_architecture$ = GetProductProperty("install_architecture","system specific")
+Set $DesktopLink$ = getProductProperty("desktop-link","false")
 Set $MSVersion$	 = GetMsVersionInfo
 Set $LogDir$ = "%opsiLogDir%"
 Set $ProductVersion$    = "%installingProdVersion%"
@@ -54,6 +55,15 @@ endif
 	
 if not (($INST_SystemType$ = "64 Bit System") and (($INST_architecture$ = "system specific") or ($INST_architecture$ = "64 only")))
 	Logwarning "OPSI package only tested with windows 64 bit version! Please report successful usage on windows 32 bit version to the maintainer."
+endif
+
+comment "Show product picture"
+if (FileExists("%ScriptPath%\..\lib\icons\%installingProdName%.png"))
+       comment "logo at local library/icons found."
+       ShowBitmap "%ScriptPath%\..\lib\icons\%installingProdName%.png" $ProductName$
+else
+       comment "no logo at local library/icons, use from ScriptPath ..."
+       ShowBitmap "%ScriptPath%\o4i.png" $ProductName$
 endif
 
 Set $SwVersion$ = takestring(0, splitString ($ProductVersion$, '-'))

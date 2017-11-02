@@ -1,8 +1,3 @@
-; Copyright (c) uib gmbh (www.uib.de)
-; This sourcecode is owned by uib gmbh
-; and published under the Terms of the General Public License.
-; credits: http://www.opsi.org/credits/
-
 [Actions]
 ; common values for (un)installation
 include_insert "common.opsiinc"
@@ -12,9 +7,6 @@ if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
 	isFatalError
 	; Stop process and set installation status to failed
 else
-	comment "Show product picture"
-	ShowBitmap "%ScriptPath%\o4i.png" $ProductName$
-	
 	if FileExists("%ScriptPath%\delsub.opsiscript")
 		comment "Start uninstall sub section"
 		Sub "%ScriptPath%\delsub.opsiscript"
@@ -34,10 +26,9 @@ else
 		Registry_install_filetypes /SysNative	
 	endif
 
-	set $DesktopIcon$ = getProductProperty("desktopicon","no")
-	if $DesktopIcon$ = "yes"
-		comment "Create common desktop icon"
-		Linkfolder_install_desktopicon	
+	if $DesktopLink$ = "true"
+		comment "Create common desktop link"
+		Linkfolder_create_desktoplink
 	endif
 
 	set $StartmenuEntry$ = getProductProperty("startmenuentry","no")
@@ -139,7 +130,7 @@ set "" = "$PathToIco$"
 openkey [HKLM\SOFTWARE\Classes\yEd 6\shell\open\command]
 set "" = '"$PathToExe$" "%1"'
 
-[Linkfolder_install_desktopicon]
+[Linkfolder_create_desktoplink]
 set_basefolder common_desktopdirectory
 set_subfolder ""
 
