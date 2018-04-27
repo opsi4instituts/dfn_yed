@@ -9,7 +9,7 @@ id: dfn_yed
 name: yEd Graph Editor
 description: Erstellung und Bearbeitung von Diagrammen unterschiedlicher Art (Graphen, Netzdiagramme, BPMN, UML, MindMaps, Organigramme, Entity-Relationship)
 advice: 
-version: 3.17.1
+version: 3.18.0.2
 priority: 0
 licenseRequired: False
 productClasses: 
@@ -79,6 +79,10 @@ values: ["no", "yes"]
 default: ["yes"]
 
 [Changelog]
+dfn_yed (3.18.0.2-1)
+	* neue Upstreamversion
+ -- Thomas Besser (archIT/KIT) <thomas.besser@kit.edu>, 26.04.2018
+
 dfn_yed (3.17.1-1)
 	* neue Upstreamversion
 	* Anpassungen o4i-Richtlinien (Desktop-Link, eigenes Logo)
