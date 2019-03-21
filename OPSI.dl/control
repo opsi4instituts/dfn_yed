@@ -1,7 +1,6 @@
 [Package]
-version: 1
+version: 2
 depends: 
-incremental: False
 
 [Product]
 type: localboot
@@ -9,7 +8,7 @@ id: dfn_yed
 name: yEd Graph Editor
 description: Erstellung und Bearbeitung von Diagrammen unterschiedlicher Art (Graphen, Netzdiagramme, BPMN, UML, MindMaps, Organigramme, Entity-Relationship)
 advice: 
-version: 3.18.0.2
+version: 3.19
 priority: 0
 licenseRequired: False
 productClasses: 
@@ -79,6 +78,15 @@ values: ["no", "yes"]
 default: ["yes"]
 
 [Changelog]
+dfn_yed (3.19-2)
+	* Output Logfile in 'postinst' nach '/tmp/dfn_yed_opsi_package_postinst.log' für Debugging. Falls z.B. Tools wie 'html2text' oder 'curl' auf OPSI-Server nicht installiert sind.
+ -- Thomas Besser (archIT/KIT) <thomas.besser@kit.edu>, 21.03.2019
+
+dfn_yed (3.19-1)
+	* neue Upstreamversion
+	* neue Regsuche (local function, universell 32/64, benötigt opsi-winst 4.12.0.16)
+ -- Thomas Besser (archIT/KIT) <thomas.besser@kit.edu>, 20.03.2019
+
 dfn_yed (3.18.0.2-1)
 	* neue Upstreamversion
  -- Thomas Besser (archIT/KIT) <thomas.besser@kit.edu>, 26.04.2018

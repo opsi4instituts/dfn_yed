@@ -8,6 +8,11 @@
 #   CLIENT_DATA_DIR: directory which contains the installed client data
 #
 
+# for additional debugging informations, /var/log/opsi/package.log only little informations are present
+LOGFILE=/tmp/${PRODUCT_ID}_opsi_package_postinst.log
+exec >> $LOGFILE
+exec 2>&1
+
 TMP_DIR=${CLIENT_DATA_DIR}/../${PRODUCT_ID}.tmp
 
 if [ -d $TMP_DIR ]; then
@@ -36,7 +41,13 @@ WGET_BIN=`which wget`
 command -v unzip >/dev/null 2>&1 || { echo >&2 "unzip required, please install. Aborting."; exit 1; }
 UNZIP_BIN=`which unzip`
 
-YED_VERSION=`$WGET_BIN $URL/yEd-CurrentVersion.txt -O - -q`
+# Check ob curl vorhanden
+command -v curl >/dev/null 2>&1 || { echo >&2 "curl required, please install. Aborting."; exit 1; }
+CURL_BIN=`which curl`
+
+#
+#YED_VERSION=`$WGET_BIN $URL/yEd-CurrentVersion.txt -O - -q`
+YED_VERSION=`curl -s https://www.yworks.com/products/yed | html2text | grep latest | cut -d "_" -f7`
 YED_ZIPFILE="yEd-$YED_VERSION.zip"
 YED_EXTRACTED_DIR="yed-$YED_VERSION"
 

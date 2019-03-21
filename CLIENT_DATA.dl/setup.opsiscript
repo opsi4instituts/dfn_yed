@@ -48,14 +48,15 @@ endif
 
 [Registry_install]
 ; da wir keinen Installer nehmen, müssen ein paar notwendige Keys angelegt werden, damit sie unter 'Systemeinstellungen' > 'Software und Funktionen' auftaucht
-openkey [$RegPathUninstall$\$ProductId$]
-set "DisplayName" = REG_SZ:"$ProductId$ OPSI-Version: $ProductVersion$"
-set "DisplayIcon" = REG_SZ:"$PathToIco$"
-set "InstallLocation" = REG_SZ:"$InstallDir$"
-set "UninstallDirectory" = REG_SZ:"$InstallDir$"
+openkey [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$ProductId$]
+set "DisplayName" = REG_SZ:"$ProductName$ (installed by OPSI)"
+set "DisplayVersion" = REG_SZ:"$ProductVersion$"
+set "DisplayIcon" = REG_SZ:"$PathToExe$"
+set "InstallLocation" = REG_SZ:"$InstallDIR$"
+set "UninstallDirectory" = REG_SZ:"$InstallDIR$"
 ;UninstallString ist der entscheidende Eintrag, damit es überhaupt angezeigt wird!
 ;da es in diesem Fall keine Deinstallationsroutine gibt, rufen wir ein VBS mit einem Hinweis auf
-set "UninstallString" = REG_SZ:'wscript "$InstallDir$\uninstall.vbs"'
+set "UninstallString" = REG_SZ:'wscript "$InstallDIR$\uninstall.vbs"'
 set "NoRepair" = REG_DWORD:0001
 set "NoModify" = REG_DWORD:0001
 

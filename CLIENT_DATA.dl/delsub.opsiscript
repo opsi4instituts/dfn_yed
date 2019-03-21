@@ -1,0 +1,87 @@
+; Ergebnis ist StringList (mehrere Einträge möglich);
+; in einer Zeile werden drei Ergebnisse mit "|" abgetrennt geliefert: Registrykey (mit Pfad) | Bereich Registry (kann direkt getRegistryValue übergeben werden | DisplayName
+; z.B. HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Test64|64bit|Test Registry Entry64
+Set $ResultList$ = SearchRegistryUninstallKeys($ProductId$)
+
+if ( count ($ResultList$) = "0" )
+	comment "No installations of " + $ProductName$ + " found in registry. Nothing to do ;-)"
+else
+	Message "Uninstalling " + $ProductName$"
+	comment "Found at least one installation of " + $ProductName$ + " in registry, try to deinstall"
+
+	; nimm den ersten Treffer der StringList (mehrere sollte es hier nicht geben)
+	Set $RegId$ = takeString (0,splitString(takeString(0,$ResultList$), '|'))
+	Set $RegBitScope$ = takeString (1,splitString(takeString(0,$ResultList$), '|'))
+	Set $RegDisplayName$ = takeString (2,splitString(takeString(0,$ResultList$), '|'))
+
+	; 'OPSI' im DisplayName der Registry ist der entscheidende Punkt, ob eine vorherige Installatin via OPSI und 'files_install' gemacht wurde
+	if (contains(lower($RegDisplayName$), "opsi"))
+		;$InstallDir$ von common.opsiinc soll nicht überschrieben werden! Deswegen $UnInstallDir$!
+		Set $UnInstallDir$ = GetRegistryValue($RegId$, "InstallLocation", $RegBitScope$)
+		
+		comment "Delete files"
+		Files_uninstall
+	
+		comment "Cleanup registry"
+		Registry_uninstall /Sysnative
+
+		set $RegisterFileTypes$ = getProductProperty("register-file-types","no")
+		if ($RegisterFileTypes$ = "yes")
+			comment "Register file types"
+			Registry_uninstall_filetypes /SysNative	
+		endif
+
+		if $DesktopLink$ = "true"
+			comment "Delete common desktop link"
+			Linkfolder_delete_desktoplink
+		endif
+
+		set $StartmenuEntry$ = getProductProperty("startmenuentry","no")
+		if $StartmenuEntry$ = "yes"
+			comment "Create common startmenu entry"
+			Linkfolder_uninstall_startmenu	
+		endif	
+
+		comment "include custom post deinstall file"
+		set $CustomPostDeinstall$ = getProductProperty("custom-post-deinstall","none")
+		if not ($CustomPostDeinstall$ = "none")
+			if FileExists("%ScriptPath%\custom\" + $CustomPostDeinstall$)
+				include_insert "%ScriptPath%\custom\" + $CustomPostDeinstall$
+			endif
+		endif
+	else
+		logError "Es wurde eine Version von " + $ProductName$ +" gefunden, die manuell mittels Installer (install4j) installiert wurde. Diese kann nicht silent deinstalliert werden, Bitte zunächst manuell deinstallieren!"
+	endif
+endif
+
+[Files_uninstall]
+delete -sf "$UninstallDir$"
+
+[Registry_uninstall]
+deletekey [$RegId$]
+
+[Registry_uninstall_filetypes]
+deletekey [HKLM\SOFTWARE\Classes\.graphml]
+deletekey [HKLM\SOFTWARE\Classes\yEd]
+deletekey [HKLM\SOFTWARE\Classes\.graphmlz]
+deletekey [HKLM\SOFTWARE\Classes\yEd 1]
+deletekey [HKLM\SOFTWARE\Classes\.ygf]
+deletekey [HKLM\SOFTWARE\Classes\yEd 2]
+deletekey [HKLM\SOFTWARE\Classes\.gml]
+deletekey [HKLM\SOFTWARE\Classes\yEd 3]
+deletekey [HKLM\SOFTWARE\Classes\.xgml]
+deletekey [HKLM\SOFTWARE\Classes\yEd 4]
+deletekey [HKLM\SOFTWARE\Classes\.tgf]
+deletekey [HKLM\SOFTWARE\Classes\yEd 5]
+deletekey [HKLM\SOFTWARE\Classes\.ged]
+deletekey [HKLM\SOFTWARE\Classes\yEd 6]
+
+[Linkfolder_delete_desktoplink]
+set_basefolder common_desktopdirectory
+set_subfolder ""
+delete_element $ProductName$
+
+[Linkfolder_uninstall_startmenu]
+set_basefolder common_programs
+delete_subfolder $ProductName$
+

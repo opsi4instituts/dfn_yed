@@ -1,13 +1,13 @@
-requiredWinstVersion >= "4.11.4.6"
+requiredWinstVersion >= "4.12.0.16"
 
 DefVar $LogDir$
 DefVar $ProductId$
 DefVar $ProductName$
 DefVar $InstallDir$
 DefVar $UninstallDir$
-DefVar $RegPathUninstall$
 DefVar $RegId$
-DefVar $SearchPattern$
+DefVar $RegBitScope$
+DefVar $RegDisplayName$
 DefStringList $ResultList$
 DefVar $MSVersion$
 DefVar $INST_architecture$
@@ -38,16 +38,13 @@ Set $MinimumSpace$    = "32 MB"
 Set $ProductId$       = "yed"
 Set $ProductName$ = "yEd Graph Editor"
 Set $InstallDir$      = "%ProgramFilesSysnativeDir%\" + $ProductId$
-Set $RegPathUninstall$ = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 Set $PathToExe$ = $InstallDir$ + "\yed.exe"
 Set $PathToIco$ = $InstallDir$ + "\icons\yicon.ico"
 Set $DownloadVersionFile$ = "%ScriptPath%\files\current-version.txt"
 ; ----------------------------------------------------------------
 
-SetLogLevel = 6
-
-include_append "section_sub_search_registry32_uninstall_keys.opsiinc"
-include_append "section_sub_search_registry64_uninstall_keys.opsiinc"
+; Library registry search uninstall keys (local functions)
+importLib "func_search_registry_uninstall_keys.opsiinc"
 
 if not ($MSVersion$ = "6.1" OR $MSVersion$ = "10.0")
 	Logwarning "Only tested with windows 7 and 10! Please report to the maintainer successful installation on other windows versions."		
